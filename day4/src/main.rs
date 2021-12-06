@@ -39,10 +39,8 @@ fn problem_two() -> u32 {
 
     for input_number in input_numbers {
         if bingo_boards.iter().filter(|b| !b.has_won).count() == 1 {
-            if let Some(index) = bingo_boards.iter().position(|b| !b.has_won) {
-                if bingo_boards[index].check_success(input_number) {
-                    return bingo_boards[index].get_score(input_number as u32);
-                }
+            if let Some(index) = bingo_boards.iter_mut().position(|b| b.check_success(input_number)) {
+                return bingo_boards[index].get_score(input_number as u32);
             }
         }
 
