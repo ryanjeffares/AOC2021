@@ -39,11 +39,11 @@ fn solve(include_diagonal: bool) -> u32 {
             })
         });
 
-        if include_diagonal {
-            print_grid(&grid, "./grid2.txt");
-        } else {
-            print_grid(&grid, "./grid.txt");
-        }
+        // if include_diagonal {
+        //     print_grid(&grid, "./grid2.txt");
+        // } else {
+        //     print_grid(&grid, "./grid.txt");
+        // }
 
         // get amount of points with >= 2 overlaps
         let mut sum = 0u32;
@@ -100,8 +100,6 @@ fn get_input(
         }
     }
 
-    println!("{}", vent_lines.len());
-
     let mut grid = Vec::<Vec<VentPoint>>::new();
     for y in 0..max_y - min_y {
         grid.push(Vec::<VentPoint>::new());
@@ -113,8 +111,9 @@ fn get_input(
     (vent_lines, grid)
 }
 
-fn print_grid<P>(grid: &Vec<Vec<VentPoint>>, filename: P) 
-where P: AsRef<Path>
+fn print_grid<P>(grid: &Vec<Vec<VentPoint>>, filename: P)
+where
+    P: AsRef<Path>,
 {
     let mut output: String = String::new();
     for row in grid.iter() {
@@ -154,6 +153,10 @@ struct VentLine {
     pub start: VentPoint,
     pub end: VentPoint,
     pub direction: Direction,
+    max_x: i32,
+    max_y: i32,
+    min_x: i32,
+    min_y: i32,
 }
 
 impl VentLine {
@@ -166,10 +169,19 @@ impl VentLine {
             Direction::Diagonal
         };
 
+        let max_x = start.x.max(end.x);
+        let max_y = start.y.max(end.y);
+        let min_x = start.x.min(end.x);
+        let min_y = start.y.min(end.y);
+
         VentLine {
             start,
             end,
-            direction
+            direction,
+            max_x,
+            max_y,
+            min_x,
+            min_y,
         }
     }
 
@@ -183,48 +195,24 @@ impl VentLine {
     pub fn check_overlap(&self, point: &VentPoint) -> bool {
         match self.direction {
             Direction::Horizontal => {
-                let min_x = self.start.x.min(self.end.x);
-                let max_x = self.start.x.max(self.end.x);
-                point.y == self.start.y && point.x >= min_x && point.x <= max_x
+                point.y == self.start.y && is_between(point.x, self.min_x, self.max_x)
             }
             Direction::Vertical => {
-                let min_y = self.start.y.min(self.end.y);
-                let max_y = self.start.y.max(self.end.y);
-                point.x == self.start.x && point.y >= min_y && point.y <= max_y
+                point.x == self.start.x && is_between(point.y, self.min_y, self.max_y)
             }
             Direction::Diagonal => {
                 let slope = (self.end.y - self.start.y) / (self.end.x - self.start.x);
                 let y_intercept = self.start.y - (slope * self.start.x);
-                // if point.y == (slope * point.x) + y_intercept {
-                //     println!("---");
-                //     println!(
-                //         "Slope is: {}, derived from ({} - {}) / ({} - {})",
-                //         slope,
-                //         self.end.y,
-                //         self.start.y,
-                //         self.end.x,
-                //         self.start.x
-                //     );
-                //     println!(
-                //         "Y-Intercept is {}, derived from {} - ({} * {})",
-                //         y_intercept,
-                //         self.start.y,
-                //         slope,
-                //         self.start.x
-                //     );
-                //     println!(
-                //         "{} == ({} * {}) + {} should return {}",
-                //         point.y,
-                //         slope,
-                //         point.x,
-                //         y_intercept,
-                //         point.y == (slope * point.x) + y_intercept
-                //     );
-                // }
-                point.y == (slope * point.x) + y_intercept
+                is_between(point.x, self.min_x, self.max_x)
+                    && is_between(point.y, self.min_y, self.max_y)
+                    && point.y == (slope * point.x) + y_intercept
             }
         }
     }
+}
+
+fn is_between(num: i32, min: i32, max: i32) -> bool {
+    num <= max && num >= min
 }
 
 fn read_lines<P>(filename: P) -> io::Result<Lines<io::BufReader<File>>>
