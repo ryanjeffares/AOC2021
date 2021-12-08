@@ -2,28 +2,28 @@ use std::{collections::HashMap, time::Instant};
 
 type Position = u8;
 
-const TOP: Position = 1;
-const TOP_LEFT: Position = 1 << 1;
-const TOP_RIGHT: Position = 1 << 2;
-const MIDDLE: Position = 1 << 3;
-const BOTTOM_LEFT: Position = 1 << 4;
+const TOP         : Position = 1;
+const TOP_LEFT    : Position = 1 << 1;
+const TOP_RIGHT   : Position = 1 << 2;
+const MIDDLE      : Position = 1 << 3;
+const BOTTOM_LEFT : Position = 1 << 4;
 const BOTTOM_RIGHT: Position = 1 << 5;
-const BOTTOM: Position = 1 << 6;
+const BOTTOM      : Position = 1 << 6;
 
-const ZERO: Position = TOP | TOP_LEFT | TOP_RIGHT | BOTTOM_LEFT | BOTTOM_RIGHT | BOTTOM;
-const ONE: Position = TOP_RIGHT | BOTTOM_RIGHT;
-const TWO: Position = TOP | TOP_RIGHT | MIDDLE | BOTTOM_LEFT | BOTTOM;
+const ZERO : Position = TOP | TOP_LEFT | TOP_RIGHT | BOTTOM_LEFT | BOTTOM_RIGHT | BOTTOM;
+const ONE  : Position = TOP_RIGHT | BOTTOM_RIGHT;
+const TWO  : Position = TOP | TOP_RIGHT | MIDDLE | BOTTOM_LEFT | BOTTOM;
 const THREE: Position = TOP | TOP_RIGHT | MIDDLE | BOTTOM_RIGHT | BOTTOM;
-const FOUR: Position = TOP_LEFT | TOP_RIGHT | MIDDLE | BOTTOM_RIGHT;
-const FIVE: Position = TOP | TOP_LEFT | MIDDLE | BOTTOM_RIGHT | BOTTOM;
-const SIX: Position = TOP | TOP_LEFT | MIDDLE | BOTTOM_LEFT | BOTTOM_RIGHT | BOTTOM;
+const FOUR : Position = TOP_LEFT | TOP_RIGHT | MIDDLE | BOTTOM_RIGHT;
+const FIVE : Position = TOP | TOP_LEFT | MIDDLE | BOTTOM_RIGHT | BOTTOM;
+const SIX  : Position = TOP | TOP_LEFT | MIDDLE | BOTTOM_LEFT | BOTTOM_RIGHT | BOTTOM;
 const SEVEN: Position = TOP | TOP_RIGHT | BOTTOM_RIGHT;
 const EIGHT: Position = TOP | TOP_LEFT | TOP_RIGHT | MIDDLE | BOTTOM_LEFT | BOTTOM_RIGHT | BOTTOM;
-const NINE: Position = TOP | TOP_LEFT | TOP_RIGHT | MIDDLE | BOTTOM_RIGHT | BOTTOM;
+const NINE : Position = TOP | TOP_LEFT | TOP_RIGHT | MIDDLE | BOTTOM_RIGHT | BOTTOM;
 
-// 1  4  7  8
+                                // 1  4  7  8
 const UNIQUE_COUNTS: [usize; 4] = [2, 4, 3, 7];
-const NUMBER_REPS: [Position; 10] = [ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE];
+const NUMBER_REPS  : [Position; 10] = [ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE];
 
 fn main() {
     let mut now = Instant::now();
@@ -70,6 +70,7 @@ fn problem_two() -> u32 {
 fn decode(input: &str, output: &str) -> u32 {
     let mut positions = HashMap::<char, Position>::new();
     let input_nums: Vec<&str> = input.trim().split(' ').collect();
+    
     // known numbers
     let one = input_nums.iter().find(|s| s.len() == 2).unwrap();
     let four = input_nums.iter().find(|s| s.len() == 4).unwrap();
@@ -157,16 +158,14 @@ fn decode(input: &str, output: &str) -> u32 {
         TOP_LEFT,
     );
 
-    let output_nums: Vec<&str> = output.trim().split(' ').collect();
-    let mut result = 0u32;
-    for i in 0..output_nums.len() {
-        let value: u32 = NUMBER_REPS
-            .iter()
-            .position(|&x| x == output_nums[i].chars().fold(0, |acc, c| acc | positions[&c]))
-            .unwrap() as u32;
-
-        result += value * (10u32.pow((output_nums.len() - i - 1) as u32));
-    }
-    
-    result
+    output.trim()
+        .split(' ')
+        .enumerate()
+        .fold(0, |sum, (index, s)| {
+            sum + (NUMBER_REPS
+                .iter()
+                .position(|&x| x == s.chars().fold(0, |segment, c| segment | positions[&c]))
+                .unwrap() as u32)
+                * (10u32.pow((4 - index - 1) as u32))
+        })
 }
