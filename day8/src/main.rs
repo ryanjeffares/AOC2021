@@ -59,150 +59,114 @@ fn problem_one() -> u32 {
 }
 
 fn problem_two() -> u32 {
-    let mut entries = get_input();
-    entries.iter_mut().fold(0, |acc, e| acc + e.decode())
+    include_str!("../input.txt")
+        .split('\n')
+        .fold(0, |acc, line| {
+            let mut split = line.split('|');
+            acc + decode(split.nth(0).unwrap(), split.nth(0).unwrap())
+        })
 }
 
-struct Entry {
-    pub signal_patterns: Vec<String>,
-    pub output_value: Vec<String>,
-    positions: HashMap<char, Position>,
-}
+fn decode(input: &str, output: &str) -> u32 {
+    let mut positions = HashMap::<char, Position>::new();
+    let input_nums: Vec<&str> = input.trim().split(' ').collect();
+    // known numbers
+    let one = input_nums.iter().find(|s| s.len() == 2).unwrap();
+    let four = input_nums.iter().find(|s| s.len() == 4).unwrap();
+    let seven = input_nums.iter().find(|s| s.len() == 3).unwrap();
+    let eight = input_nums.iter().find(|s| s.len() == 7).unwrap();
 
-impl Entry {
-    pub fn new(signal_patterns: &str, output_value: &str) -> Self {
-        Entry {
-            signal_patterns: signal_patterns
-                .trim()
-                .split(' ')
-                .map(|s| s.to_string())
-                .collect(),
-            output_value: output_value
-                .trim()
-                .split(' ')
-                .map(|s| s.to_string())
-                .collect(),
-            positions: HashMap::<char, Position>::new(),
-        }
-    }
+    let four_bytes = four.as_bytes();
+    let seven_bytes = seven.as_bytes();
+    let eight_bytes = eight.as_bytes();
 
-    pub fn decode(&mut self) -> u32 {
-        // known numbers
-        let one = self.signal_patterns.iter().find(|s| s.len() == 2).unwrap();
-        let four = self.signal_patterns.iter().find(|s| s.len() == 4).unwrap();
-        let four_bytes = four.as_bytes();
-        let seven = self.signal_patterns.iter().find(|s| s.len() == 3).unwrap();
-        let seven_bytes = seven.as_bytes();
-        let eight = self.signal_patterns.iter().find(|s| s.len() == 7).unwrap();
-        let eight_bytes = eight.as_bytes();
+    // can get top segment by comparing 1 and 7
+    positions.insert(
+        seven_bytes[seven.find(|c| !one.contains(c)).unwrap()] as char,
+        TOP,
+    );
 
-        // can get top segment by comparing 1 and 7
-        self.positions.insert(
-            seven_bytes[seven.find(|c| !one.contains(c)).unwrap()] as char,
-            TOP,
-        );
-
-        // can get bottom left by comparing 0/9, 4, and 8
-        // only segment thats not in 4, is in 8, and in 1 of the two six segment numbers
-        self.positions.insert(
-            eight_bytes[eight
-                .find(|c| {
-                    !four.contains(c)
-                        && self
-                            .signal_patterns
-                            .iter()
-                            .filter(|s| s.len() == 6 && s.contains(c))
-                            .count()
-                            == 2
-                })
-                .unwrap()] as char,
-            BOTTOM_LEFT,
-        );
-
-        // can now get bottom - only segment that isnt in 4 or 7 but is in 8, and isnt the bottom left
-        self.positions.insert(
-            eight_bytes[eight
-                .find(|c| {
-                    !four.contains(c) && !seven.contains(c) && !self.positions.contains_key(&c)
-                })
-                .unwrap()] as char,
-            BOTTOM,
-        );
-
-        // can get top right - only segment that is in 4 and 1, and 2 of the six segment numbers
-        self.positions.insert(
-            four_bytes[four
-                .find(|c| {
-                    one.contains(c)
-                        && self
-                            .signal_patterns
-                            .iter()
-                            .filter(|s| s.len() == 6 && s.contains(c))
-                            .count()
-                            == 2
-                })
-                .unwrap()] as char,
-            TOP_RIGHT,
-        );
-
-        // can get middle - only segment that is in 4, not already in map, and present in 2 of the six segment numbers
-        self.positions.insert(
-            four_bytes[four
-                .find(|c| {
-                    self.signal_patterns
+    // can get bottom left by comparing 0/9, 4, and 8
+    // only segment thats not in 4, is in 8, and in 1 of the two six segment numbers
+    positions.insert(
+        eight_bytes[eight
+            .find(|c| {
+                !four.contains(c)
+                    && input_nums
                         .iter()
                         .filter(|s| s.len() == 6 && s.contains(c))
                         .count()
                         == 2
-                        && !self.positions.contains_key(&c)
-                })
-                .unwrap()] as char,
-            MIDDLE,
-        );
+            })
+            .unwrap()] as char,
+        BOTTOM_LEFT,
+    );
 
-        // can get bottom right - only segment thats in 7, in 4, not top right
-        self.positions.insert(
-            seven_bytes[seven
-                .find(|c| four.contains(c) && !self.positions.contains_key(&c))
-                .unwrap()] as char,
-            BOTTOM_RIGHT,
-        );
+    // can now get bottom - only segment that isnt in 4 or 7 but is in 8, and isnt the bottom left
+    positions.insert(
+        eight_bytes[eight
+            .find(|c| !four.contains(c) && !seven.contains(c) && !positions.contains_key(&c))
+            .unwrap()] as char,
+        BOTTOM,
+    );
 
-        // have top, bottom left, bottom, top right, middle, bottom right
-        // top left - only segment thats in 4, not in 1, not middle
-        self.positions.insert(
-            four_bytes[four
-                .find(|c| !one.contains(c) && !self.positions.contains_key(&c))
-                .unwrap()] as char,
-            TOP_LEFT,
-        );
+    // can get top right - only segment that is in 4 and 1, and 2 of the six segment numbers
+    positions.insert(
+        four_bytes[four
+            .find(|c| {
+                one.contains(c)
+                    && input_nums
+                        .iter()
+                        .filter(|s| s.len() == 6 && s.contains(c))
+                        .count()
+                        == 2
+            })
+            .unwrap()] as char,
+        TOP_RIGHT,
+    );
 
-        let mut result = 0u32;
-        for i in 0..self.output_value.len() {
-            let value: u32 = NUMBER_REPS
-                .iter()
-                .position(|&x| {
-                    x == self.output_value[i]
-                        .chars()
-                        .fold(0, |acc, c| acc | self.positions[&c])
-                })
-                .unwrap() as u32;
+    // can get middle - only segment that is in 4, not already in map, and present in 2 of the six segment numbers
+    positions.insert(
+        four_bytes[four
+            .find(|c| {
+                input_nums
+                    .iter()
+                    .filter(|s| s.len() == 6 && s.contains(c))
+                    .count()
+                    == 2
+                    && !positions.contains_key(&c)
+            })
+            .unwrap()] as char,
+        MIDDLE,
+    );
 
-            if value > 0 {
-                result += value * (10u32.pow((self.output_value.len() - i - 1) as u32));
-            }
-        }
+    // can get bottom right - only segment thats in 7, in 4, not top right
+    positions.insert(
+        seven_bytes[seven
+            .find(|c| four.contains(c) && !positions.contains_key(&c))
+            .unwrap()] as char,
+        BOTTOM_RIGHT,
+    );
 
-        result
+    // have top, bottom left, bottom, top right, middle, bottom right
+    // top left - only segment thats in 4, not in 1, not middle
+    positions.insert(
+        four_bytes[four
+            .find(|c| !one.contains(c) && !positions.contains_key(&c))
+            .unwrap()] as char,
+        TOP_LEFT,
+    );
+
+    let output_nums: Vec<&str> = output.trim().split(' ').collect();
+    let mut result = 0u32;
+    for i in 0..output_nums.len() {
+        let value: u32 = NUMBER_REPS
+            .iter()
+            .position(|&x| x == output_nums[i].chars().fold(0, |acc, c| acc | positions[&c]))
+            .unwrap() as u32;
+
+        result += value * (10u32.pow((output_nums.len() - i - 1) as u32));
     }
-}
-
-fn get_input() -> Vec<Entry> {
-    let mut entries = Vec::<Entry>::new();
-    include_str!("../input.txt").split('\n').for_each(|s| {
-        let mut pair = s.split('|');
-        entries.push(Entry::new(pair.nth(0).unwrap(), pair.nth(0).unwrap()))
-    });
-
-    entries
+    
+    result
 }

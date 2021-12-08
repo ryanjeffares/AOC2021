@@ -1,9 +1,4 @@
-use std::{
-    fs::File,
-    io::{self, BufRead},
-    path::Path,
-    time::Instant,
-};
+use std::time::Instant;
 
 fn main() {
     let mut now = Instant::now();
@@ -27,19 +22,15 @@ fn problem_one() -> u32 {
     let mut horizontal: u32 = 0;
     let mut vertical: u32 = 0;
 
-    if let Ok(lines) = read_lines("./input.txt") {
-        for line in lines {
-            if let Ok(l) = line {
-                let tokens = l.split_ascii_whitespace().collect::<Vec<&str>>();
-                match tokens[0] {
-                    "forward" => horizontal += tokens[1].parse::<u32>().unwrap(),
-                    "down" => vertical += tokens[1].parse::<u32>().unwrap(),
-                    "up" => vertical -= tokens[1].parse::<u32>().unwrap(),
-                    _ => (),
-                };
-            }
+    include_str!("../input.txt").split('\n').for_each(|line| {
+        let mut split = line.trim().split(' ');
+        match split.nth(0).unwrap() {
+            "forward" => horizontal += split.nth(0).unwrap().parse::<u32>().unwrap(),
+            "down" => vertical += split.nth(0).unwrap().parse::<u32>().unwrap(),
+            "up" => vertical -= split.nth(0).unwrap().parse::<u32>().unwrap(),
+            _ => (),
         }
-    }
+    });
 
     horizontal * vertical
 }
@@ -49,35 +40,23 @@ fn problem_two() -> u32 {
     let mut depth: u32 = 0;
     let mut aim: u32 = 0;
 
-    if let Ok(lines) = read_lines("./input.txt") {
-        for line in lines {
-            if let Ok(l) = line {
-                let tokens = l.split_ascii_whitespace().collect::<Vec<&str>>();
-                let amount = tokens[1].parse::<u32>().unwrap();
-                match tokens[0] {
-                    "forward" => {
-                        horizontal += amount;
-                        depth += amount * aim;
-                    }
-                    "down" => {
-                        aim += amount;
-                    }
-                    "up" => {
-                        aim -= amount;
-                    }
-                    _ => (),
-                };
+    include_str!("../input.txt").split('\n').for_each(|line| {
+        let mut split = line.trim().split(' ');
+        match split.nth(0).unwrap() {
+            "forward" => {
+                let amount = split.nth(0).unwrap().parse::<u32>().unwrap();
+                horizontal += amount;
+                depth += amount * aim;
             }
+            "down" => {
+                aim += split.nth(0).unwrap().parse::<u32>().unwrap();
+            }
+            "up" => {
+                aim -= split.nth(0).unwrap().parse::<u32>().unwrap();
+            }
+            _ => (),
         }
-    }
+    });
 
     horizontal * depth
-}
-
-fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-where
-    P: AsRef<Path>,
-{
-    let file = File::open(filename)?;
-    Ok(io::BufReader::new(file).lines())
 }
