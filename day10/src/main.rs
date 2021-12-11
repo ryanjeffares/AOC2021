@@ -14,7 +14,7 @@ fn main() {
     )
 }
 
-fn problem_one() -> (u32, u64) {
+fn problem_one() -> (u32, usize) {
     let mut open_close_pairs = HashMap::<char, char>::new();
     open_close_pairs.insert('(', ')');
     open_close_pairs.insert('[', ']');
@@ -34,7 +34,7 @@ fn problem_one() -> (u32, u64) {
 
 
     let mut sum = 0;
-    let mut fix_scores = Vec::<u64>::new();
+    let mut fix_scores = Vec::<usize>::new();
     for line in corrupted_lines.iter() {
         let (error_char, score) = find_error(line, &open_close_pairs);
 
@@ -53,7 +53,7 @@ fn problem_one() -> (u32, u64) {
 // returns the error character, and the score for fixing the line
 // if it was a corrupted line, this will return a character and 0
 // if it was an incomplete line, this will return None and the score
-fn find_error(line: &str, pairs: &HashMap<char, char>) -> (Option<char>, u64) {
+fn find_error(line: &str, pairs: &HashMap<char, char>) -> (Option<char>, usize) {
     let mut stack = Vec::<char>::new();
     for c in line.chars() {
         if OPENERS.contains(&c) {
@@ -69,16 +69,10 @@ fn find_error(line: &str, pairs: &HashMap<char, char>) -> (Option<char>, u64) {
         }
     }
 
-    let mut scores = HashMap::<char, u64>::new();
-    scores.insert(')', 1);
-    scores.insert(']', 2);
-    scores.insert('}', 3);
-    scores.insert('>', 4);
-
     let mut score = 0;
     while !stack.is_empty() {
         score *= 5;
-        score += scores[&pairs[stack.last().unwrap()]];
+        score += CLOSERS.iter().position(|p| p == &pairs[stack.last().unwrap()]).unwrap() + 1;
         stack.pop();
     }
     
