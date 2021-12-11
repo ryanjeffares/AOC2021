@@ -32,7 +32,6 @@ fn problem_one() -> (u32, usize) {
         .map(|l| l.trim())
         .collect();
 
-
     let mut sum = 0;
     let mut fix_scores = Vec::<usize>::new();
     for line in corrupted_lines.iter() {
@@ -45,7 +44,7 @@ fn problem_one() -> (u32, usize) {
         }
     }
 
-    fix_scores.sort();    
+    fix_scores.sort();
 
     (sum, fix_scores[fix_scores.len() / 2])
 }
@@ -72,9 +71,13 @@ fn find_error(line: &str, pairs: &HashMap<char, char>) -> (Option<char>, usize) 
     let mut score = 0;
     while !stack.is_empty() {
         score *= 5;
-        score += CLOSERS.iter().position(|p| p == &pairs[stack.last().unwrap()]).unwrap() + 1;
+        score += CLOSERS
+            .iter()
+            .position(|p| p == &pairs[stack.last().unwrap()])
+            .unwrap()
+            + 1;
         stack.pop();
     }
-    
+
     (None, score)
 }

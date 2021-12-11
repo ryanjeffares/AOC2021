@@ -1,9 +1,4 @@
-use std::{
-    fs::File,
-    io::{self, BufRead, Lines},
-    path::Path,
-    time::Instant,
-};
+use std::{path::Path, time::Instant};
 
 fn main() {
     let mut now = Instant::now();
@@ -24,80 +19,71 @@ fn main() {
 }
 
 fn solve(include_diagonal: bool) -> u32 {
-    if let Ok(lines) = read_lines("./input.txt") {
-        let (vent_lines, mut grid) = get_input(lines, include_diagonal);
+    let (vent_lines, mut grid) = get_input(include_diagonal);
 
-        // println!("{}", vent_lines.len());
-        // find the overlaps
-        vent_lines.iter().for_each(|vl| {
-            grid.iter_mut().for_each(|row| {
-                row.iter_mut().for_each(|point| {
-                    if vl.check_overlap(point) {
-                        point.overlaps += 1
+    // println!("{}", vent_lines.len());
+    // find the overlaps
+    let mut sum = 0u32;
+    vent_lines.iter().for_each(|vl| {
+        grid.iter_mut().for_each(|row| {
+            row.iter_mut().for_each(|point| {
+                if vl.check_overlap(point) {
+                    if point.overlaps == 1 {
+                        sum += 1;
                     }
-                })
+                    point.overlaps += 1
+                }
             })
-        });
+        })
+    });
 
-        // if include_diagonal {
-        //     print_grid(&grid, "./grid2.txt");
-        // } else {
-        //     print_grid(&grid, "./grid.txt");
-        // }
+    // if include_diagonal {
+    //     print_grid(&grid, "./grid2.txt");
+    // } else {
+    //     print_grid(&grid, "./grid.txt");
+    // }
 
-        // get amount of points with >= 2 overlaps
-        let mut sum = 0u32;
-        grid.iter()
-            .for_each(|row| sum += row.iter().filter(|vp| vp.overlaps >= 2).count() as u32);
-        return sum;
-    }
-
-    0
+    sum
 }
 
-fn get_input(
-    lines: Lines<io::BufReader<File>>,
-    include_diagonal: bool,
-) -> (Vec<VentLine>, Vec<Vec<VentPoint>>) {
+fn get_input(include_diagonal: bool) -> (Vec<VentLine>, Vec<Vec<VentPoint>>) {
     let mut vent_lines = Vec::<VentLine>::new();
     let mut min_x = i32::MAX;
     let mut min_y = i32::MAX;
     let mut max_x = 0i32;
     let mut max_y = 0i32;
-    for l in lines {
-        if let Ok(line) = l {
-            let mut points = line.trim().split("->");
+    for line in include_str!("../input.txt").split('\n') {
+        let mut points = line.trim().split("->");
 
-            let start = points.nth(0).unwrap();
-            let mut start_points = start.trim().split(',');
-            let x1 = start_points.nth(0).unwrap().parse::<i32>().unwrap();
-            let y1 = start_points.nth(0).unwrap().parse::<i32>().unwrap();
+        let start = points.nth(0).unwrap();
+        let mut start_points = start.trim().split(',');
+        let x1 = start_points.nth(0).unwrap().parse::<i32>().unwrap();
+        let y1 = start_points.nth(0).unwrap().parse::<i32>().unwrap();
 
-            let end = points.nth(0).unwrap();
-            let mut end_points = end.trim().split(',');
-            let x2 = end_points.nth(0).unwrap().parse::<i32>().unwrap();
-            let y2 = end_points.nth(0).unwrap().parse::<i32>().unwrap();
+        let end = points.nth(0).unwrap();
+        let mut end_points = end.trim().split(',');
+        let x2 = end_points.nth(0).unwrap().parse::<i32>().unwrap();
+        let y2 = end_points.nth(0).unwrap().parse::<i32>().unwrap();
 
-            if include_diagonal {
+        if include_diagonal {
+            vent_lines.push(VentLine::new(
+                VentPoint::new(x1, y1),
+                VentPoint::new(x2, y2),
+            ));
+        } else {
+            if x1 == x2 || y1 == y2 {
                 vent_lines.push(VentLine::new(
                     VentPoint::new(x1, y1),
                     VentPoint::new(x2, y2),
                 ));
-            } else {
-                if x1 == x2 || y1 == y2 {
-                    vent_lines.push(VentLine::new(
-                        VentPoint::new(x1, y1),
-                        VentPoint::new(x2, y2),
-                    ));
-                }
             }
-
-            min_x = min_x.min(x1.min(x2));
-            min_y = min_y.min(y1.min(y1));
-
-            max_x = max_x.max(x1.max(x2));
-            max_y = max_y.max(y1.max(y2));
         }
+
+        min_x = min_x.min(x1.min(x2));
+        min_y = min_y.min(y1.min(y1));
+
+        max_x = max_x.max(x1.max(x2));
+        max_y = max_y.max(y1.max(y2));
     }
 
     let mut grid = Vec::<Vec<VentPoint>>::new();
@@ -211,14 +197,7 @@ impl VentLine {
     }
 }
 
+#[inline]
 fn is_between(num: i32, min: i32, max: i32) -> bool {
     num <= max && num >= min
-}
-
-fn read_lines<P>(filename: P) -> io::Result<Lines<io::BufReader<File>>>
-where
-    P: AsRef<Path>,
-{
-    let file = File::open(filename)?;
-    Ok(io::BufReader::new(file).lines())
 }

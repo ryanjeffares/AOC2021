@@ -28,9 +28,6 @@ fn problem_one() -> i32 {
         .fold(0, |acc, pos| acc + (pos - target_pos).abs())
 }
 
-// thanks to https://www.reddit.com/r/adventofcode/comments/rawxad/2021_day_7_part_2_i_wrote_a_paper_on_todays/
-// i went to college for music so i dont know maths and algorithms
-// not copying code just implementing the maths from that paper
 fn problem_two() -> i32 {
     let crabs = get_input();
     let min = crabs.iter().min().unwrap();
