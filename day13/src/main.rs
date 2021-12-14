@@ -12,7 +12,7 @@ fn main() {
     now = Instant::now();
     problem_two();
     println!(
-        "Problem 2: LGHEGUEJ, Completed in {} us",
+        "Problem 2 Completed in {} us",
         now.elapsed().as_millis()
     );
 }
@@ -30,32 +30,14 @@ fn problem_one() -> usize {
     let index = split.nth(0).unwrap().trim().parse::<usize>().unwrap();
 
     if xy == 'x' {
-        for y in 0..y_max {
-            for x in index..x_max {
-                if grid[y][x] {
-                    let diff = x - index;
-                    grid[y][index - diff] = true;
-                }
-            }
-            grid[y].resize(index, false);
-        }
+        fold_grid_x(index, y_max, x_max, &mut grid);
     } else if xy == 'y' {
-        for y in index..y_max {
-            for x in 0..x_max {
-                if grid[y][x] {
-                    let diff = y - index;
-                    grid[index - diff][x] = true;
-                }
-            }
-        }
-        grid.resize(index, Vec::<bool>::new());
+        fold_grid_y(index, y_max, x_max, &mut grid);
     }
 
-    let mut sum = 0usize;
-    for row in grid.iter() {
-        sum += row.iter().filter(|&&b| b).count();
-    }
-    sum
+    grid.iter().fold(0, |acc, row| {
+        acc + row.iter().filter(|&&b| b).count()
+    })
 }
 
 fn problem_two() {
@@ -80,32 +62,52 @@ fn problem_two() {
         let index = folds[i].1;
 
         if xy == 'x' {
-            for y in 0..y_max {
-                for x in index..x_max {
-                    if grid[y][x] {
-                        let diff = x - index;
-                        grid[y][index - diff] = true;
-                    }
-                }
-                grid[y].resize(index, false);
-            }
-
+            fold_grid_x(index, y_max, x_max, &mut grid);
             x_max = index;
         } else if xy == 'y' {
-            for y in index..y_max {
-                for x in 0..x_max {
-                    if grid[y][x] {
-                        let diff = y - index;
-                        grid[index - diff][x] = true;
-                    }
-                }
-            }
-            grid.resize(index, Vec::<bool>::new());
+            fold_grid_y(index, y_max, x_max, &mut grid);
             y_max = index;
         }
     }
 
-    print_grid(&grid, "./after_fold.txt");
+    println!("");
+
+    for y in grid.iter() {
+        for x in y.iter() {
+            if *x {
+                print!("#");
+            } else {
+                print!(" ");
+            }
+        }
+        println!("");
+    }
+
+    println!("");
+}
+
+fn fold_grid_y(index: usize, y_max: usize, x_max: usize, grid: &mut Vec<Vec<bool>>) {
+    for y in index..y_max {
+        for x in 0..x_max {
+            if grid[y][x] {
+                let diff = y - index;
+                grid[index - diff][x] = true;
+            }
+        }
+    }
+    grid.resize(index, Vec::<bool>::new());
+}
+
+fn fold_grid_x(index: usize, y_max: usize, x_max: usize, grid: &mut Vec<Vec<bool>>) {
+    for y in 0..y_max {
+        for x in index..x_max {
+            if grid[y][x] {
+                let diff = x - index;
+                grid[y][index - diff] = true;
+            }
+        }
+        grid[y].resize(index, false);
+    }
 }
 
 fn get_input() -> (usize, usize, Vec<Vec<bool>>) {
@@ -145,7 +147,7 @@ fn print_grid(grid: &Vec<Vec<bool>>, name: &str) {
     let mut output = String::new();
     for y in grid.iter() {
         for x in y.iter() {
-            output += if *x { "@" } else { " " };
+            output += if *x { "#" } else { " " };
         }
         output += "\n";
     }
