@@ -55,7 +55,7 @@ fn decode(input: &str) -> Packet {
 }
 
 fn extract_packet(input: &str) -> Option<Packet> {
-    if input.len() < 7 {
+    if input.len() < 11 {
         return None;
     }
 
@@ -64,18 +64,14 @@ fn extract_packet(input: &str) -> Option<Packet> {
 
     match type_id {
         4 => {
-            if input.len() < 11 {
-                return None;
-            }
-
-            let mut i = 6usize;
+            let mut length_in_bits = 6usize;
             let mut res = String::new();
             loop {
-                let slice = &input[i..i + 5];
+                let slice = &input[length_in_bits..length_in_bits + 5];
                 let bits = &slice[1..];
                 res += bits;
-                i += 5;
-                if slice.as_bytes()[0] as char == '0' || input.len() < i + 5 {
+                length_in_bits += 5;
+                if slice.as_bytes()[0] == 48 {
                     break;
                 }
             }
@@ -83,16 +79,16 @@ fn extract_packet(input: &str) -> Option<Packet> {
             Some(Packet {
                 version,
                 type_id,
-                length_in_bits: i,
+                length_in_bits,
                 operator: None,
                 literal: Some(u64::from_str_radix(&res, 2).unwrap()),
                 sub_packets: Vec::<Packet>::new(),
             })
         }
         _ => {
-            let length_id = match input.as_bytes()[6] as char {
-                '0' => 15usize,
-                '1' => 11usize,
+            let length_id = match input.as_bytes()[6] {
+                48 => 15usize,
+                49 => 11usize,
                 _ => panic!("Character wasn't '0' or '1'"),
             };
 
