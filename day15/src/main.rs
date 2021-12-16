@@ -1,14 +1,16 @@
 use std::{
-    collections::{HashMap, LinkedList}, fs::write, time::Instant,
+    collections::{HashMap, LinkedList},
+    fs::write,
+    time::Instant,
 };
 
 const GRID_WIDTH: usize = 100;
 const VERTICES: usize = GRID_WIDTH * GRID_WIDTH;
 const OFFSETS: [(i16, i16); 4] = [
-    (0, -1), // top
-    (0, 1),  // bottom
-    (-1, 0), // left
-    (1, 0),  // right
+    ( 0, -1), // top
+    ( 0,  1),  // bottom
+    (-1,  0), // left
+    ( 1,  0),  // right
 ];
 
 fn main() {
@@ -76,8 +78,8 @@ fn solve(big_map: bool) -> usize {
                 }
             }
         }
-    }    
-    
+    }
+
     if big_map {
         print_map(&input);
         graph.find_path_big()
@@ -139,7 +141,7 @@ impl Graph {
         let mut risks = Vec::<usize>::new();
         risks.resize(VERTICES * 25, usize::MAX);
 
-        self.dijsktra(risks.as_mut(), spt.as_mut())
+        self.dijsktra(risks.as_mut_slice(), spt.as_mut_slice())
     }
 
     fn dijsktra(&self, risks: &mut [usize], spt: &mut [bool]) -> usize {
