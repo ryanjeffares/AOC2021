@@ -206,11 +206,11 @@ struct Packet {
 
 impl Packet {
     pub fn get_version_count(&self) -> u16 {
-        let mut count = self.version;
-        for p in self.sub_packets.iter() {
-            count += p.get_version_count();
-        }
-        count
+        self.version
+            + self
+                .sub_packets
+                .iter()
+                .fold(0, |acc, p| acc + p.get_version_count())
     }
 
     pub fn get_value(&self) -> u64 {

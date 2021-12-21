@@ -35,3 +35,7 @@ AOC2021 problems, all completed in pure Rust. Results below are running in relea
 | 15 | 2 | 2829 | 341.9 ms |
 | 16 | 1 | 991 | 300 us |
 | 16 | 2 | 1264485568252 | NA (Completed in same function) |
+| 17 | 1 | 4278 | 138 us |
+| 17 | 2 | 1994 | NA (Completed in same function) |
+| 20 | 1 | 5489 | 414 us |
+| 20 | 2 | 19066 | 26.82 ms |
